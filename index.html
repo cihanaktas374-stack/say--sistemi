@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AKTAŞ ARAŞTIRMA AGENT</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #475569; 
+            --card-bg: #ffffff;
+            --navy: #1e3a8a; 
+            --orange: #f97316;
+            --success: #16a34a;
+            --danger: #dc2626;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: var(--bg-color); 
+            margin: 0; padding: 20px;
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .ana-baslik {
+            font-size: 1.5rem; color: #ffffff; font-weight: 900;
+            margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .ana-kapsayici {
+            display: flex; gap: 30px; width: 100%; max-width: 1000px;
+            justify-content: center; align-items: flex-start;
+        }
+
+        .sol-panel { flex: 1; max-width: 350px; position: sticky; top: 20px; }
+        .sag-panel { flex: 1.2; max-width: 500px; width: 100%; }
+
+        .kutu {
+            background: var(--card-bg); padding: 15px; border-radius: 15px;
+            border: 2px solid var(--navy); box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            margin-bottom: 15px; text-align: center;
+        }
+
+        .logo-container {
+            width: 130px; height: 130px; background: white; border-radius: 15px;
+            margin: 0 auto 15px auto; border: 3px solid var(--navy);
+            overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        .logo-container img { width: 100%; height: 100%; object-fit: cover; }
+
+        .etiket { font-size: 0.65rem; font-weight: 800; color: var(--navy); text-transform: uppercase; }
+        .sayi-buyuk { font-size: 2rem; font-weight: 900; color: var(--navy); display: block; }
+
+        .kontrol-alani { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 10px 0; }
+        .puan-btn { 
+            width: 40px; height: 40px; border-radius: 10px; border: none; 
+            color: white; font-size: 20px; font-weight: 900; cursor: pointer; transition: 0.2s; 
+        }
+        .arttir { background: var(--success); }
+        .azalt { background: var(--danger); }
+        .puan-btn:active { transform: scale(0.9); }
+        
+        .aktif-sayi { font-size: 1.8rem; font-weight: 900; min-width: 45px; color: var(--navy); }
+
+        /* HAREKETLİ EMOJİLER */
+        @keyframes shine {
+            0% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.2); filter: brightness(1.3); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+        @keyframes wobble {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+            100% { transform: rotate(0deg); }
+        }
+        .crown { display: inline-block; animation: shine 1.5s infinite; }
+        .poop { display: inline-block; animation: wobble 2s infinite linear; }
+
+        .admin-box { margin-top: 10px; border: 1px dashed #cbd5e1; padding: 10px; border-radius: 10px; }
+        .reset-btn { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 10px; font-weight: bold; width: 100%; }
+
+        .liste-oge { 
+            background: #ffffff; padding: 12px 18px; border-radius: 12px; margin-bottom: 10px; 
+            border-left: 6px solid var(--navy); display: flex; justify-content: space-between; 
+            align-items: center; box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+
+        .lider { 
+            border: 2px solid var(--orange); 
+            border-left: 8px solid var(--orange); 
+            background: #fff7ed;
+        }
+
+        .sira-no { color: var(--navy); font-weight: 900; min-width: 25px; }
+        .isim { font-weight: 700; color: var(--navy); font-size: 0.95rem; }
+        .liste-puan { font-size: 1.6rem; font-weight: 900; color: var(--navy); }
+        .sil-btn { background: #fee2e2; color: var(--danger); border: none; border-radius: 5px; padding: 4px 8px; cursor: pointer; font-size: 9px; font-weight: 900; }
+        .sen-tag { background: var(--navy); color: #fff; font-size: 8px; padding: 2px 5px; border-radius: 4px; margin-left: 4px; }
+
+        @media (max-width: 850px) {
+            .ana-kapsayici { flex-direction: column; align-items: center; }
+            .sol-panel, .sag-panel { max-width: 100%; width: 100%; position: static; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1 class="ana-baslik">AKTAŞ ARAŞTIRMA AGENT</h1>
+
+    <div class="ana-kapsayici">
+        <div class="sol-panel">
+            <div class="kutu">
+                <div class="logo-container">
+                    <img src="logo.jpg" onerror="this.src='https://via.placeholder.com/130?text=LOGO'" alt="Logo">
+                </div>
+                <span class="etiket">TOPLAM ANKET SAYISI</span>
+                <span id="genelToplam" class="sayi-buyuk">0</span>
+                
+                <div class="admin-box">
+                    <button class="reset-btn" id="btnTopluSifirla">TÜM LİSTEYİ SIFIRLA</button>
+                </div>
+            </div>
+
+            <div id="ozelAlan" class="kutu" style="display: none;">
+                <span id="ajanSelam" class="etiket">HOŞ GELDİN</span>
+                <div class="kontrol-alani">
+                    <button class="puan-btn azalt" id="btnAzalt">−</button>
+                    <span class="aktif-sayi" id="mevcutPuan">0</span>
+                    <button class="puan-btn arttir" id="btnArttir">+</button>
+                </div>
+                <span id="ozelSonSaat" style="font-size: 0.6rem; color: #64748b; font-weight: 700; display: block;">SAAT: --:--</span>
+            </div>
+
+            <div id="girisEkrani" class="kutu">
+                <div style="display: flex; gap: 8px; justify-content: center;">
+                    <input id="isimInput" style="padding:10px; border-radius:8px; border:1px solid #ccc; width:60%;" placeholder="İsminiz...">
+                    <button id="girisBtn" style="padding:10px; border:none; background:var(--navy); color:white; border-radius:8px; font-weight:800; cursor:pointer;">BAŞLA</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="sag-panel" id="liste"></div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, increment, getDocs, where, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBziLCmbn4Xpz8UmmcbyHRggih7pLPoajY",
+        authDomain: "aktasresearch-96479.firebaseapp.com",
+        projectId: "aktasresearch-96479",
+        storageBucket: "aktasresearch-96479.appspot.com",
+        messagingSenderId: "1071681612589",
+        appId: "1:1071681612589:web:b0712cdd8083d863ecc1a4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const colRef = collection(db, "kayitlar");
+
+    let aktifDocId = localStorage.getItem('aktifDocId');
+    let aktifIsim = localStorage.getItem('aktifIsim');
+    let sonLiderId = null;
+
+    if(aktifDocId) {
+        document.getElementById('girisEkrani').style.display = 'none';
+        document.getElementById('ozelAlan').style.display = 'block';
+        document.getElementById('ajanSelam').innerText = aktifIsim.toUpperCase();
+    }
+
+    const saatGetir = () => {
+        const simdi = new Date();
+        return simdi.getHours().toString().padStart(2, '0') + ":" + simdi.getMinutes().toString().padStart(2, '0');
+    };
+
+    document.getElementById('girisBtn').onclick = async () => {
+        const isim = document.getElementById('isimInput').value.trim();
+        if(!isim) return;
+        const q = query(colRef, where("kullaniciAdi", "==", isim));
+        const snap = await getDocs(q);
+        if (!snap.empty) { oturumAc(snap.docs[0].id, isim); } 
+        else { 
+            const yeni = await addDoc(colRef, { kullaniciAdi: isim, puan: 0, sonSaat: saatGetir() }); 
+            oturumAc(yeni.id, isim); 
+        }
+    };
+
+    function oturumAc(id, isim) {
+        localStorage.setItem('aktifDocId', id);
+        localStorage.setItem('aktifIsim', isim);
+        location.reload();
+    }
+
+    const guncelle = async (m) => {
+        if(!aktifDocId) return;
+        await updateDoc(doc(db, "kayitlar", aktifDocId), { puan: increment(m), sonSaat: saatGetir() });
+    };
+
+    document.getElementById('btnArttir').onclick = () => guncelle(1);
+    document.getElementById('btnAzalt').onclick = () => guncelle(-1);
+
+    document.getElementById('btnTopluSifirla').onclick = async () => {
+        if(confirm("Tüm liste temizlensin mi?")) {
+            const snap = await getDocs(colRef);
+            const batch = writeBatch(db);
+            snap.docs.forEach(d => batch.delete(d.ref));
+            await batch.commit();
+            localStorage.clear();
+            location.reload();
+        }
+    };
+
+    // SIRALAMA SADECE PUANA GÖRE (İLK GELEN ÖNCELİĞİ KALDIRILDI)
+    onSnapshot(query(colRef, orderBy("puan", "desc")), (snap) => {
+        const list = document.getElementById('liste');
+        const docs = snap.docs;
+        list.innerHTML = '';
+        let toplam = 0;
+
+        if (docs.length > 0) {
+            const maxPuan = docs[0].data().puan;
+            const minPuan = docs[docs.length - 1].data().puan;
+            
+            if(docs[0].id !== sonLiderId && maxPuan > 0) {
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                sonLiderId = docs[0].id;
+            }
+
+            docs.forEach((d, index) => {
+                const v = d.data();
+                toplam += (v.puan || 0);
+                const isMe = d.id === aktifDocId;
+                const isLider = v.puan === maxPuan && maxPuan > 0;
+                const isSonuncu = v.puan === minPuan && docs.length > 1;
+
+                if(isMe) document.getElementById('mevcutPuan').innerText = v.puan;
+
+                const div = document.createElement('div');
+                div.className = `liste-oge ${isLider ? 'lider' : ''}`;
+                div.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="sira-no">${index + 1}.</span>
+                        <button class="sil-btn" onclick="kayitSil('${d.id}')">SİL</button>
+                        <div>
+                            <span class="isim">
+                                ${isLider ? '<span class="crown">👑</span> ' : ''}${isSonuncu ? '<span class="poop">💩</span> ' : ''}${v.kullaniciAdi} ${isMe ? '<span class="sen-tag">SEN</span>' : ''}
+                            </span>
+                            <div style="font-size: 0.65rem; color: #64748b; font-weight: 600;">${v.sonSaat || '--:--'}</div>
+                        </div>
+                    </div>
+                    <div class="liste-puan">${v.puan || 0}</div>
+                `;
+                list.appendChild(div);
+            });
+        }
+        document.getElementById('genelToplam').innerText = toplam;
+    });
+
+    window.kayitSil = async (id) => { if(confirm("Silinsin mi?")) await deleteDoc(doc(db, "kayitlar", id)); };
+</script>
+</body>
+</html>
